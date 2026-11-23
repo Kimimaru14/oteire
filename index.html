@@ -11,9 +11,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="お手入れ帳">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="description" content="一条工務店の家の設備（ロスガード・エコキュートなど）のお手入れ時期を管理する非公式アプリ。データはスマホの中だけに保存されます。">
+<meta name="description" content="おうちの設備（換気・給湯・水まわりなど）のお手入れ時期を管理する個人制作アプリ。データはスマホの中だけに保存されます。">
 
-<title>お手入れ帳｜一条オーナー向け お手入れ管理（非公式）</title>
+<title>お手入れ帳｜おうちの設備 お手入れ管理</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -174,6 +174,10 @@ select.i{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org
 .tedit .tn{flex:1;min-width:0}
 .tdel{flex:none;border:1px solid var(--line);background:#fff;color:var(--red);font-size:11px;line-height:1;border-radius:6px;padding:5px 7px;margin-left:6px;cursor:pointer}
 .addcat{display:block;width:100%;border:1px dashed var(--main);background:transparent;color:var(--main);font-weight:700;border-radius:10px;padding:8px;margin:2px 0 6px;cursor:pointer;font-size:13px}
+.terms{margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:var(--sub)}
+.terms li{margin:4px 0}
+.termslink{margin:22px 4px 0;text-align:center}
+.linkinline{border:0;background:none;color:var(--main);font-weight:700;font-size:inherit;padding:0;cursor:pointer;text-decoration:underline}
 .obh{color:var(--ink);font-size:20px;margin-top:4px}
 .roomchips{display:flex;flex-wrap:wrap;gap:6px}
 .roomhead{font-weight:700;font-size:14px;margin:16px 2px 6px;padding-left:8px;border-left:3px solid var(--main)}
@@ -196,7 +200,7 @@ a{color:var(--main)}
   <header>
     <div class="logo">
       <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 15 16 5l12 10v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="#fff"/><path d="M11 18.5l3.5 3.5L21.5 15" fill="none" stroke="#d7141e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div>お手入れ帳<small>一条オーナー向け お手入れ管理（非公式）</small></div>
+      <div>お手入れ帳<small>おうちの設備 お手入れ管理</small></div>
     </div>
   </header>
   <main id="view"></main>
@@ -580,7 +584,13 @@ function viewSettings(){
     <div style="height:8px"></div>
     <button class="btn danger" id="resetBtn">すべてのデータを削除</button>
   </div>
-  <p class="note" style="padding:6px 4px">このアプリは一条工務店とは関係のない個人制作の非公式アプリです。お手入れ方法や時期は目安なので、お使いの設備の取扱説明書を必ず確認してください。</p>`;
+  <h2>ご利用にあたって</h2>
+  <div class="card"><ul class="terms">
+      <li>お手入れの方法・時期・頻度は一般的な目安です。実際のお手入れは、必ず各設備の取扱説明書やメーカー・住宅会社の案内に従って行ってください。</li>
+      <li>本アプリの利用、または本アプリの情報をもとに行ったお手入れによって生じた設備の故障・不具合・損害について、制作者は一切の責任を負いません。</li>
+      <li>登録したデータはお使いのスマホの中だけに保存されます。データの消失について制作者は責任を負いませんので、定期的にバックアップしてください。</li>
+      <li>本アプリは株式会社一条工務店とは関係のない、個人が制作した非公式アプリです。掲載している製品名は各社の商標または登録商標です。</li>
+    </ul></div>`;
 }
 
 /* ================= 描画 ================= */
