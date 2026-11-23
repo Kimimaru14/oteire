@@ -1,0 +1,16 @@
+{
+  "name": "お手入れ帳｜一条オーナー向け お手入れ管理（非公式）",
+  "short_name": "お手入れ帳",
+  "description": "一条工務店の家の設備（ロスガード・エコキュートなど）のお手入れ時期を管理する非公式アプリ",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f8f5",
+  "theme_color": "#00873c",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

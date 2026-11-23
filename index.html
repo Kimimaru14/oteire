@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00873c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="お手入れ帳">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="一条工務店の家の設備（ロスガード・エコキュートなど）のお手入れ時期を管理する非公式アプリ。データはスマホの中だけに保存されます。">
+
+<title>お手入れ帳｜一条オーナー向け お手入れ管理（非公式）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f8f5; --card:#ffffff; --ink:#1f2a24; --sub:#6b7770; --line:#dde6e0;
+  --main:#00873c; --main-weak:#e3f2e8; --red:#d7141e; --warn:#e07800; --warn-weak:#fff1e0;
+  --bad:#5c6f8c; --bad-weak:#e8edf4; --lamp:#6b62b5; --lamp-weak:#ecebf8;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;padding:0 16px calc(env(safe-area-inset-bottom) + 92px)}
+header{display:flex;align-items:center;justify-content:space-between;margin:0 -16px 6px;padding:calc(env(safe-area-inset-top) + 14px) 18px 12px;background:var(--main);color:#fff;border-bottom:4px solid var(--red)}
+.logo{font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+.logo svg{flex:none}
+.logo small{display:block;font-family:"Noto Sans JP";font-weight:400;font-size:11px;color:rgba(255,255,255,.85);letter-spacing:0}
+h2{font-family:"Zen Maru Gothic",sans-serif;font-size:15px;margin:22px 4px 8px;color:var(--sub);display:flex;align-items:center;gap:8px}
+h2 .cnt{font-family:"Noto Sans JP";font-size:12px;background:var(--line);border-radius:99px;padding:1px 8px;color:var(--ink)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.sum b{display:block;font-size:24px;font-family:"Zen Maru Gothic";line-height:1.2}
+.sum span{font-size:11px;color:var(--sub)}
+.sum.bad b{color:var(--bad)} .sum.warn b{color:var(--warn)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 12px 12px 14px;display:flex;gap:10px;align-items:center;cursor:pointer;position:relative;overflow:hidden}
+.item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--main)}
+.item.bad::before{background:var(--bad)} .item.warn::before{background:var(--warn)} .item.lamp::before{background:var(--lamp)} .item.none::before{background:var(--line)}
+.item .body{flex:1;min-width:0}
+.item .name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .meta{font-size:12px;color:var(--sub);margin-top:2px;display:flex;flex-wrap:wrap;gap:4px 8px}
+.tag{font-size:11px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 6px}
+.due{text-align:right;flex:none;font-size:12px;color:var(--sub);min-width:74px}
+.due b{display:block;font-size:14px;color:var(--ink)}
+.item.bad .due b{color:var(--bad)} .item.warn .due b{color:var(--warn)} .item.lamp .due b{color:var(--lamp)}
+.donebtn{flex:none;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--main);background:#fff;color:var(--main);display:grid;place-items:center;cursor:pointer}
+.donebtn:active{background:var(--main);color:#fff}
+.empty{text-align:center;color:var(--sub);font-size:14px;padding:40px 10px;background:var(--card);border:1px dashed var(--line);border-radius:var(--r)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+nav.tabs .in{max-width:560px;margin:0 auto;display:flex}
+nav.tabs button{flex:1;background:none;border:0;padding:10px 0 12px;font-size:11px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
+nav.tabs button.on{color:var(--main);font-weight:700}
+nav.tabs .badge{position:absolute;top:5px;left:calc(50% + 6px);background:var(--red);color:#fff;border-radius:99px;font-size:10px;padding:0 5px;line-height:16px}
+.fab{position:fixed;right:max(16px,calc(50% - 264px));bottom:calc(env(safe-area-inset-bottom) + 76px);width:56px;height:56px;border-radius:50%;background:var(--main);color:#fff;border:0;box-shadow:0 6px 16px rgba(0,135,60,.35);display:grid;place-items:center;cursor:pointer;z-index:21}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;font-size:13px;cursor:pointer}
+.chip.on{background:var(--main);color:#fff;border-color:var(--main)}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;background:var(--main);color:#fff;width:100%;font-size:15px}
+.btn.sub{background:var(--main-weak);color:var(--main)}
+.btn.ghost{background:transparent;color:var(--sub);font-weight:500}
+.btn.danger{background:#fde7e8;color:var(--red)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+label.f{display:block;font-size:12px;color:var(--sub);margin:12px 0 4px}
+input.i,select.i,textarea.i{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;font-size:16px}
+textarea.i{min-height:64px;resize:vertical}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.card p{margin:6px 0;font-size:14px;line-height:1.7}
+.note{font-size:12px;color:var(--sub);line-height:1.7}
+/* sheet */
+.mask{position:fixed;inset:0;background:rgba(30,28,24,.45);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.mask.show{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom) + 20px);animation:up .22s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grip{width:40px;height:4px;background:var(--line);border-radius:4px;margin:4px auto 10px}
+.sheet h3{font-family:"Zen Maru Gothic";font-size:19px;margin:6px 0 4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:10px 0}
+.kv dt{color:var(--sub)} .kv dd{margin:0}
+.nextbox{background:var(--main-weak);border-radius:12px;padding:12px 14px;margin:12px 0;display:flex;justify-content:space-between;align-items:center}
+.nextbox.bad{background:var(--bad-weak)} .nextbox.warn{background:var(--warn-weak)} .nextbox.lamp{background:var(--lamp-weak)}
+.nextbox b{font-size:20px;font-family:"Zen Maru Gothic"}
+.hist{font-size:13px;color:var(--sub);margin:4px 0 0;padding-left:18px;line-height:1.8}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 150px);transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;z-index:60;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+/* onboarding */
+.ob-step{font-size:12px;color:var(--main);font-weight:700;margin-top:18px}
+.preset-group{margin:14px 0 4px;font-weight:700;font-size:14px}
+.pick{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;cursor:pointer}
+.pick input{width:20px;height:20px;accent-color:var(--main);flex:none}
+.pick .t{flex:1;font-size:14px}
+.pick .t small{display:block;color:var(--sub);font-size:12px}
+.eq{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:6px;overflow:hidden}
+.eq .pick{border:0;margin:0;border-radius:0;background:transparent}
+.eq.on{border-color:var(--main);box-shadow:inset 3px 0 0 var(--main)}
+.eq.locked{opacity:.65}
+.stepper{display:flex;align-items:center;gap:10px;padding:0 12px 8px 12px;font-size:13px;color:var(--sub)}
+.stepper button{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--main);background:#fff;color:var(--main);font-size:18px;line-height:1;cursor:pointer}
+.stepper b{min-width:20px;text-align:center;color:var(--ink);font-size:16px}
+.places{display:flex;flex-direction:column;gap:6px;padding:0 12px 12px 14px}
+.i.sm{padding:8px 10px;font-size:14px}
+.tag.place{background:var(--main-weak);border-color:transparent;color:var(--main)}
+.sum.bad{border-top:3px solid var(--bad)}
+.catbox{margin:10px 0}
+.catbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;padding:10px 12px;background:var(--main);color:#fff;border-radius:10px;margin-bottom:6px}
+.catbox>summary::-webkit-details-marker{display:none}
+.catbox>summary::after{content:"▾";font-size:14px}
+.catbox:not([open])>summary::after{content:"▸"}
+.catbox>summary .cnt{font-size:11px;font-weight:500;background:#fff;color:var(--main);border-radius:99px;padding:1px 8px}
+.pick.multi{cursor:default}
+.pick.multi .stepper{padding:0;flex:none;gap:6px}
+.stepper button:disabled{opacity:.3}
+.have{color:var(--main);font-weight:700}
+.floorhead{font-size:18px;color:var(--ink);margin:24px 2px 6px;padding-bottom:6px;border-bottom:3px solid var(--main)}
+.cathead{font-weight:700;font-size:13px;color:var(--main);margin:14px 2px 6px;display:flex;align-items:center;gap:6px}
+.cathead::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--red)}
+.eqcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.eqname{font-weight:700;font-size:15px;padding:10px 14px 4px;display:flex;align-items:center;gap:8px}
+.item.task{border:0;border-radius:0;border-top:1px solid var(--line);padding:8px 12px 8px 16px;margin:0}
+.item.task:first-of-type{border-top:0}
+.item.task .name{font-size:14px;font-weight:500}
+.item.task .donebtn{width:34px;height:34px}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin:12px 0 0}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:9px;font-size:13px;color:var(--sub);cursor:pointer}
+.seg button.on{background:var(--main);color:#fff;font-weight:700}
+.catbox>summary .ct{display:flex;flex-direction:column;min-width:0;flex:1}
+.catbox>summary .ct small{font-weight:400;font-size:11px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+.linkbtn{border:0;background:none;color:var(--main);font-size:13px;font-weight:700;padding:0 14px 12px;cursor:pointer;text-align:left}
+.linkbtn.center{display:block;width:100%;text-align:center;padding:12px 0 2px;color:var(--sub);font-weight:500;text-decoration:underline}
+.quick{margin-top:26px;padding:14px 16px;border:2px dashed var(--main);border-radius:var(--r);background:var(--card)}
+.quick p{margin:4px 0 10px}
+.eq .pick .t{min-width:0}
+.eq .pick .t small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ichi{font-style:normal;font-size:10px;color:var(--main);border:1px solid var(--main);border-radius:4px;padding:0 4px;line-height:16px;font-weight:500}
+input.i,select.i{max-width:100%;min-width:0;-webkit-appearance:none;appearance:none;min-height:46px}
+select.i{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236b7770' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:32px}
+.ym select{flex:1}
+.bulkbtn{display:block;width:100%;margin-top:8px;border:1.5px solid var(--main);background:var(--card);color:var(--main);font-weight:700;border-radius:12px;padding:10px;cursor:pointer;font-size:14px}
+.bulkhint{margin:10px 2px 0;font-size:13px;color:var(--main);font-weight:700}
+#view.bulk .donebtn{border-color:var(--line);color:transparent;background:#fff}
+#view.bulk .item.picked{background:var(--main-weak)}
+#view.bulk .item.picked .donebtn{background:var(--main);border-color:var(--main);color:#fff}
+#view.bulk{padding-bottom:90px}
+#view.bulk .eqname{cursor:pointer}
+#view.bulk .eqname::after{content:"まとめて選択";margin-left:auto;font-size:11px;font-weight:500;color:var(--main)}
+.bulkbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:3px solid var(--main);box-shadow:0 -6px 20px rgba(0,0,0,.08);padding:12px 16px calc(env(safe-area-inset-bottom) + 12px)}
+.bulkbar .in{max-width:560px;margin:0 auto}
+.bkcount{font-size:14px;color:var(--sub);flex:1}.bkcount b{font-size:22px;color:var(--main);margin-right:2px}
+.btn:disabled{opacity:.4}
+.eqrow{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;margin-bottom:8px}
+.eqrow-h{display:flex;align-items:center;gap:8px}
+.eqrow-h .eqname{flex:1}
+.delbtn{border:1px solid var(--line);background:#fff;color:var(--red);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;flex:none}
+.tlist{list-style:none;margin:6px 0 0;padding:0}
+.tlist li{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--sub);padding:3px 0;border-top:1px dashed var(--line)}
+.tlist li:first-child{border-top:0}
+.when{flex:none;color:var(--ink)}.when.bad{color:var(--bad)}.when.warn{color:var(--warn)}.when.lamp{color:var(--lamp)}
+.addfl{display:block;width:100%;border:1.5px dashed var(--main);background:transparent;color:var(--main);font-weight:700;border-radius:12px;padding:11px;margin-top:4px;cursor:pointer;font-size:14px}
+.cyc{flex:none;border:0;background:var(--main-weak);color:var(--main);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;cursor:pointer}
+.cyc i{font-style:normal;margin-left:4px;opacity:.7}
+.tedit{cursor:pointer}
+.tadd{border-top:1px dashed var(--line)!important;padding-top:6px!important}
+.tadd button{border:0;background:none;color:var(--main);font-size:13px;font-weight:700;padding:2px 0;cursor:pointer}
+.hf{font-style:normal;font-size:11px;color:var(--red);font-weight:700}
+.hfnote{color:var(--red);font-size:13px;font-weight:700;margin:8px 2px 0;line-height:1.6}
+#eVwrap:empty,#cVw:empty{display:none}
+.tedit .tn{flex:1;min-width:0}
+.tdel{flex:none;border:1px solid var(--line);background:#fff;color:var(--red);font-size:11px;line-height:1;border-radius:6px;padding:5px 7px;margin-left:6px;cursor:pointer}
+.addcat{display:block;width:100%;border:1px dashed var(--main);background:transparent;color:var(--main);font-weight:700;border-radius:10px;padding:8px;margin:2px 0 6px;cursor:pointer;font-size:13px}
+.obh{color:var(--ink);font-size:20px;margin-top:4px}
+.roomchips{display:flex;flex-wrap:wrap;gap:6px}
+.roomhead{font-weight:700;font-size:14px;margin:16px 2px 6px;padding-left:8px;border-left:3px solid var(--main)}
+.dots{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 0}
+.dots span{font-size:11px;padding:1px 8px;border-radius:99px;background:var(--line);color:var(--sub)}
+.dots span.done{background:var(--main-weak);color:var(--main)}
+.dots span.cur{background:var(--main);color:#fff}
+.pick.ichijo .t::after{content:"一条標準";font-size:10px;color:var(--main);border:1px solid var(--main);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.mgr-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.mgr-row:last-child{border-bottom:0}
+.mgr-row span{flex:1}
+.x{border:0;background:none;color:var(--sub);cursor:pointer;padding:4px 8px;font-size:18px}
+.sticky-foot{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:18px 0 6px}
+a{color:var(--main)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 15 16 5l12 10v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" fill="#fff"/><path d="M11 18.5l3.5 3.5L21.5 15" fill="none" stroke="#d7141e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>お手入れ帳<small>一条オーナー向け お手入れ管理（非公式）</small></div>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<button class="fab" id="fab" aria-label="項目を追加">
+  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+</button>
+
+<nav class="tabs"><div class="in">
+  <button data-tab="home" class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>予定<span class="badge hidden" id="badge"></span></button>
+  <button data-tab="items"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11 12 4l8 7v9H4Z"/><path d="M9 20v-5h6v5"/></svg>設備一覧</button>
+  <button data-tab="settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>設定</button>
+</div></nav>
+
+<div class="bulkbar hidden" id="bulkbar"></div>
+<div class="mask" id="mask"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= データ ================= */
+const KEY = 'otteire-cho-v1';
+const OUT = '屋外';
+const DEFAULT_FLOORS = ['1階','2階',OUT];
+const DEFAULT_CATS = ['換気・空調','キッチン','水まわり','収納・その他','外まわり'];
+const isOut = fl => fl===OUT;
+
+// 設備カタログ：設備ごとにお手入れ項目(tasks)を持つ。multi:1 は台数を選べる設備
+// 頻度: {t:'d',v:日数} {t:'m',v:月数} {t:'s',v:月(毎年)} {t:'lamp'} {t:'none'}
+const CATALOG = [
+  {id:'losguard', cat:'換気・空調', name:'ロスガード', tasks:[
+    {name:'給気フィルター掃除', method:'掃除機でホコリを吸う', f:{t:'m',v:3}, note:'汚れがひどい場合は早めに交換'},
+    {name:'給気フィルター交換', method:'交換', f:{t:'m',v:6}, note:'リモコンのランプ点灯も目安'},
+    {name:'防虫袋交換', method:'交換', f:{t:'m',v:12}}]},
+  {id:'exhaust', cat:'換気・空調', name:'排気口（RA）', multi:1, tasks:[
+    {name:'グリル・フィルター掃除', method:'掃除機・水洗い', f:{t:'m',v:3}},
+    {name:'フィルター交換', method:'交換', f:{t:'m',v:6}}]},
+  {id:'aircon', cat:'換気・空調', name:'エアコン', multi:1, tasks:[
+    {name:'フィルター掃除', method:'掃除機・水洗い', f:{t:'m',v:1}}]},
+  {id:'circ', cat:'換気・空調', name:'サーキュレーター', multi:1, tasks:[
+    {name:'掃除', method:'掃除機・水洗い', f:{t:'m',v:1}}]},
+  {id:'nanoe', cat:'換気・空調', name:'ナノイー', multi:1, tasks:[
+    {name:'蓋・内部フィルター掃除', method:'掃除機', f:{t:'m',v:1}}]},
+  {id:'hood', cat:'キッチン', name:'レンジフード', tasks:[
+    {name:'掃除', method:'ホームクリーナー', f:{t:'m',v:1}},
+    {name:'内部ファン', method:'ホームクリーナー・食洗機', f:{t:'m',v:12}}]},
+  {id:'dish', cat:'キッチン', name:'食洗機', tasks:[
+    {name:'庫内（ノズル・フチ）', method:'庫内洗浄', f:{t:'m',v:1}}]},
+  {id:'water_bi', cat:'キッチン', name:'浄水器（ビルトイン）', tasks:[
+    {name:'カートリッジ交換', method:'交換', f:{t:'m',v:12}, note:'交換時期は機種の取扱説明書で確認してください'}]},
+  {id:'water_tap', cat:'キッチン', name:'浄水器（蛇口一体）', tasks:[
+    {name:'カートリッジ交換', method:'交換', f:{t:'m',v:12}, note:'交換時期は機種の取扱説明書で確認してください'}]},
+  {id:'water_tl', cat:'キッチン', name:'浄水器（タッチレス水栓一体）', tasks:[
+    {name:'カートリッジ交換', method:'交換', f:{t:'m',v:12}, note:'交換時期は機種の取扱説明書で確認してください'}]},
+  {id:'dpintake', cat:'キッチン', name:'差圧感応式給気口', tasks:[
+    {name:'フィルター掃除', method:'掃除機・水洗い', f:{t:'m',v:1}},
+    {name:'フィルター交換', method:'交換', f:{t:'m',v:12}}]},
+  {id:'sink', cat:'キッチン', name:'キッチンシンク', tasks:[
+    {name:'排水口', method:'クレンザー', f:{t:'d',v:7}}]},
+  {id:'basin', cat:'水まわり', name:'洗面台', multi:1, tasks:[
+    {name:'排水口', method:'カビキラー・パイプユニッシュ', f:{t:'d',v:7}},
+    {name:'洗面台下の排水管掃除', method:'ネジを外して掃除', f:{t:'m',v:12}}]},
+  {id:'bath', cat:'水まわり', name:'浴室', tasks:[
+    {name:'床・排水口', method:'ブラシ・マジックリン', f:{t:'d',v:7}},
+    {name:'浴槽 手洗い', method:'マジックリン', f:{t:'m',v:1}},
+    {name:'風呂配管の循環洗浄', method:'エコキュート用の洗浄剤', f:{t:'m',v:2}}]},
+  {id:'toilet', cat:'水まわり', name:'トイレ', multi:1, tasks:[
+    {name:'便座裏・フチ', method:'トイレマジックリン', f:{t:'d',v:7}},
+    {name:'脱臭フィルター', method:'水洗い・歯ブラシ', f:{t:'m',v:1}},
+    {name:'給水フィルター', method:'水洗い・歯ブラシ', f:{t:'m',v:6}}]},
+  {id:'washer', cat:'水まわり', name:'洗濯機', tasks:[
+    {name:'ホコリ受け', method:'手・カビキラー', f:{t:'d',v:7}},
+    {name:'洗濯槽クリーナー', method:'専用クリーナー', f:{t:'m',v:2}}]},
+  {id:'dryer', cat:'水まわり', name:'電気乾燥機', tasks:[
+    {name:'紙フィルター交換', method:'交換', f:{t:'lamp'}}]},
+  {id:'closet', cat:'収納・その他', name:'クローゼット・収納', multi:1, tasks:[
+    {name:'除湿剤交換', method:'交換', f:{t:'m',v:3}},
+    {name:'防虫剤交換', method:'ムシューダ', f:{t:'m',v:12}}]},
+  {id:'window', cat:'収納・その他', name:'窓', tasks:[
+    {name:'窓ガラス', method:'ガラスマジックリン', f:{t:'m',v:3}}]},
+  {id:'honeycomb', cat:'収納・その他', name:'ハニカムシェード', tasks:[
+    {name:'拭き掃除', method:'濡れ布で拭く', f:{t:'none'}, note:'汚れが気になったときに'}]},
+  // 屋外
+  {id:'ecocute', cat:'外まわり', name:'エコキュート', out:1, tasks:[
+    {name:'貯湯タンクのお手入れ（水抜き）', method:'取扱説明書・点検説明書を確認', f:{t:'m',v:4}, note:'年2〜3回が目安。いちばん大事なお手入れです'}]},
+  {id:'heatsrc', cat:'外まわり', name:'床暖房 室外機', out:1, tasks:[
+    {name:'循環水の補充', method:'室外機の給水口から水道水を補充', f:{t:'m',v:12}, note:'少しずつ減るので量を確認。補充は年1回以下、数年に1回で足りることもあります'}]},
+  {id:'bcap', cat:'外まわり', name:'ゴキブリ対策', out:1, tasks:[
+    {name:'交換', method:'ブラックキャップなど', f:{t:'m',v:12}}]},
+];
+const PARTS = {losguard:'給気フィルター・防虫袋', exhaust:'グリル・フィルター', aircon:'フィルター', circ:'本体（さらぽかの家のみ）', nanoe:'蓋・内部フィルター',
+  hood:'フード・内部ファン', dish:'庫内', water_bi:'カートリッジ', water_tap:'カートリッジ', water_tl:'カートリッジ', dpintake:'フィルター', sink:'排水口',
+  basin:'排水口・排水管', bath:'床・排水口・浴槽・配管', toilet:'便座・脱臭フィルター・給水フィルター', washer:'ホコリ受け・洗濯槽', dryer:'紙フィルター',
+  closet:'除湿剤・防虫剤', window:'窓ガラス', honeycomb:'シェード', ecocute:'貯湯タンク', heatsrc:'循環水', bcap:'ブラックキャップなど'};
+const CAT_ORDER = ['換気・空調','キッチン','水まわり','収納・その他','外まわり'];
+// フロアごとに最初から選択しておく設備（ロスガードと排気口は別ルール：平屋なら1階、2階建て以上なら2階）
+// 水まわりなど毎週お手入れする設備（※頻度高※）は最初から選択しない
+const FLOOR_DEFAULTS = {
+  '1階': {aircon:1, nanoe:3, hood:1, dish:1, water_tl:1, dpintake:1},
+  '2階': {aircon:2},
+  '3階': {aircon:1},
+  [OUT]: {ecocute:1, heatsrc:1},
+};
+function losguardFloor(floors){
+  const indoor = floors.filter(f => !isOut(f));
+  if(indoor.length >= 2) return indoor.includes('2階') ? '2階' : indoor[1];
+  return indoor[0];
+}
+
+let mem = null;
+function load(){
+  try{ const s = localStorage.getItem(KEY); if(s) return JSON.parse(s); }catch(e){}
+  return mem;
+}
+function save(){
+  mem = state;
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+let state = load() || {onboarded:false, moveIn:'', notifyDays:7, floors:[...DEFAULT_FLOORS], cats:[...DEFAULT_CATS], items:[]};
+
+/* ================= 日付 ================= */
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d||1); };
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+function addMonths(d, n){
+  const r = new Date(d.getFullYear(), d.getMonth()+n, 1);
+  const last = new Date(r.getFullYear(), r.getMonth()+1, 0).getDate();
+  r.setDate(Math.min(d.getDate(), last)); return r;
+}
+const addDays = (d,n) => { const r = new Date(d); r.setDate(r.getDate()+n); return r; };
+const diffDays = (a,b) => Math.round((a - b) / 86400000);
+const WD = '日月火水木金土';
+const fmt = d => `${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})`;
+const fmtFull = d => `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+
+function step(d, f, k=1){ return f.t==='d' ? addDays(d, f.v*k) : addMonths(d, f.v*k); }
+
+function freqLabel(f){
+  if(f.t==='d'){ if(f.v===1) return '毎日'; if(f.v%7===0) return f.v===7?'週1回':`${f.v/7}週に1回`; return `${f.v}日に1回`; }
+  if(f.t==='m'){ if(f.v===1) return '月1回'; if(f.v===12) return '年1回'; if(f.v%12===0) return `${f.v/12}年に1回`; return `${f.v}ヶ月に1回`; }
+  if(f.t==='s') return `毎年${f.v}月`;
+  if(f.t==='lamp') return 'ランプ点灯時';
+  return '不定期';
+}
+
+// 次回お手入れ日
+const baseDate = it => [it.last||'', it.lastSkip||''].sort().pop();
+function nextDue(it){
+  const f = it.f, t = today(), base = baseDate(it);
+  if(it.nextFix && (!base || it.nextFix > base)) return parse(it.nextFix);
+  if(f.t==='lamp' || f.t==='none') return null;
+  if(f.t==='s'){
+    const after = base ? parse(base) : addDays(t,-1);
+    let y = after.getFullYear(); let d = new Date(y, f.v-1, 1);
+    if(d <= after) d = new Date(y+1, f.v-1, 1);
+    return d;
+  }
+  // お手入れ（またはパス）を記録した日からサイクル分あとが次回
+  if(base) return step(parse(base), f);
+  // まだ記録がない：入居月からサイクル分あとがまだ先ならその日、過ぎていれば登録日から数える
+  if(state.moveIn){
+    const d = step(parse(state.moveIn.length===7 ? state.moveIn + '-01' : state.moveIn), f);
+    if(d >= t) return d;
+  }
+  return step(parse(it.created), f);
+}
+function status(it){
+  const d = nextDue(it);
+  if(it.f.t==='lamp') return {cls:'lamp', d:null, label:'ランプ点灯時'};
+  if(!d) return {cls:'none', d:null, label:'不定期'};
+  const n = diffDays(d, today());
+  // 月単位のサイクル（月1回・3ヶ月に1回・毎年◯月など）は「月」で考える
+  if(isMonthly(it.f)){
+    const t = today(), md = (d.getFullYear()-t.getFullYear())*12 + d.getMonth()-t.getMonth();
+    const dt = monthText(d);
+    if(md < 0) return {cls:'bad', d, n, md, dt, label: md===-1 ? '先月から' : `${-md}ヶ月前から`};
+    if(md === 0) return {cls:'warn', d, n, md, dt, label:'今月'};
+    if(md === 1) return {cls:'ok', d, n, md, dt, label:'来月'};
+    return {cls:'ok', d, n, md, dt, label: md>=12 ? `あと${Math.floor(md/12)}年${md%12?md%12+'ヶ月':''}` : `あと${md}ヶ月`};
+  }
+  const label = relLabel(d, n), dt = dueDate(d, n);
+  if(n < 0) return {cls:'bad', d, n, dt, label};
+  if(n <= state.notifyDays) return {cls:'warn', d, n, dt, label};
+  return {cls:'ok', d, n, dt, label};
+}
+const isMonthly = f => f.t==='m' || f.t==='s';
+const monthText = d => d.getFullYear()===today().getFullYear() ? `${d.getMonth()+1}月` : `${d.getFullYear()}年${d.getMonth()+1}月`;
+const dueText = (d, f) => isMonthly(f) ? monthText(d) : dueDate(d, diffDays(d, today()));
+function monthsDiff(a, b){ // a が b より何ヶ月先か（まるごとの月数）
+  let m = (a.getFullYear()-b.getFullYear())*12 + a.getMonth()-b.getMonth();
+  if(a.getDate() < b.getDate()) m--; return m;
+}
+function relLabel(d, n){
+  if(n === 0) return '今日';
+  if(n < 0){ const m = monthsDiff(today(), d); return m >= 1 ? `${m}ヶ月過ぎ` : `${-n}日過ぎ`; }
+  if(n < 31) return `あと${n}日`;
+  const m = monthsDiff(d, today());
+  if(m >= 12){ const y = Math.floor(m/12), r = m%12; return `あと${y}年${r?r+'ヶ月':''}`; }
+  return `あと${Math.max(1,m)}ヶ月`;
+}
+const dueDate = (d, n) => Math.abs(n) <= 31 ? fmt(d) : `${d.getFullYear()}年${d.getMonth()+1}月`;
+
+/* ================= 共通UI ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+let tab = 'home', filt = {floor:'', cat:''};
+
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(()=>t.classList.remove('show'), 2000); }
+function openSheet(html){ $('#sheet').innerHTML = '<div class="grip"></div>' + html; $('#mask').classList.add('show'); }
+function closeSheet(){ $('#mask').classList.remove('show'); }
+$('#mask').addEventListener('click', e => { if(e.target.id==='mask') closeSheet(); });
+function confirmBox(msg, okLabel, onOk){
+  openSheet(`<h3>${esc(msg)}</h3><div class="row" style="margin-top:18px"><button class="btn ghost" id="cNo">やめる</button><button class="btn danger" id="cOk">${esc(okLabel)}</button></div>`);
+  $('#cNo').onclick = closeSheet; $('#cOk').onclick = () => { closeSheet(); onOk(); };
+}
+
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => { if(bulk) bulk = null; tab = b.dataset.tab; render(); window.scrollTo(0,0); });
+$('#fab').onclick = () => editItem(null);
+
+function itemRow(it){
+  const s = status(it);
+  const right = s.d ? `<b>${s.label}</b>${s.dt}` : `<b>${s.label}</b>${it.last ? '前回 '+fmt(parse(it.last)) : '記録なし'}`;
+  return `<div class="item ${s.cls}" data-id="${it.id}">
+    <div class="body"><div class="name">${esc(it.name)}</div>
+      <div class="meta"><span class="tag">${esc(it.floor||'—')}</span>${it.place?`<span class="tag place">${esc(it.place)}</span>`:''}<span>${freqLabel(it.f)}</span></div></div>
+    <div class="due">${right}</div>
+    <button class="donebtn" data-done="${it.id}" aria-label="お手入れした"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+  </div>`;
+}
+function bindRows(root){
+  if(bulk){
+    root.querySelectorAll('.item').forEach(el => {
+      el.classList.toggle('picked', bulk.has(el.dataset.id));
+      el.onclick = e => { e.stopPropagation(); const id = el.dataset.id; bulk.has(id) ? bulk.delete(id) : bulk.add(id); el.classList.toggle('picked', bulk.has(id)); drawBulkBar(); };
+    });
+    root.querySelectorAll('.eqcard').forEach(card => {
+      const nm = card.querySelector('.eqname'); if(!nm) return;
+      nm.onclick = () => {
+        const ids = [...card.querySelectorAll('.item')].map(x=>x.dataset.id);
+        const all = ids.every(id => bulk.has(id));
+        ids.forEach(id => all ? bulk.delete(id) : bulk.add(id));
+        card.querySelectorAll('.item').forEach(x => x.classList.toggle('picked', bulk.has(x.dataset.id)));
+        drawBulkBar();
+      };
+    });
+    return;
+  }
+  root.querySelectorAll('.item').forEach(el => el.onclick = e => {
+    const done = e.target.closest('[data-done]');
+    if(done){ e.stopPropagation(); recordSheet(done.dataset.done); return; }
+    detail(el.dataset.id);
+  });
+}
+
+/* ================= 画面: 予定 ================= */
+function viewHome(){
+  const items = state.items;
+  if(!items.length) return `<div class="empty" style="margin-top:20px">まだ設備が登録されていません<br><br><button class="btn" id="goOb" style="width:auto">設備を選んで登録する</button></div>`;
+  const rows = items.map(it => ({it, s:status(it)}));
+  const bad = rows.filter(r=>r.s.cls==='bad').sort((a,b)=>a.s.d-b.s.d);
+  const soon = rows.filter(r=>r.s.cls==='warn').sort((a,b)=>a.s.d-b.s.d);
+  const later = rows.filter(r=>r.s.cls==='ok').sort((a,b)=>a.s.d-b.s.d);
+  const month = later.filter(r=>r.s.n<=31), after = later.filter(r=>r.s.n>31);
+  const lamp = rows.filter(r=>r.s.cls==='lamp'||r.s.cls==='none');
+  const sec = (title, arr) => arr.length ? `<h2>${title}<span class="cnt">${arr.length}</span></h2><div class="list">${arr.map(r=>itemRow(r.it)).join('')}</div>` : '';
+  const byTime = state.sort === 'due';
+  const sortBar = `<div class="seg"><button data-sort="floor" class="${!byTime?'on':''}">フロア・設備順</button><button data-sort="due" class="${byTime?'on':''}">時期順</button></div>
+    <button class="bulkbtn" id="bulkStart">✓ お手入れしたものをまとめて記録</button>`;
+  const head = `<div class="summary">
+      <div class="sum bad"><b>${bad.length}</b><span>時期を過ぎた</span></div>
+      <div class="sum warn"><b>${soon.length}</b><span>今月・もうすぐ</span></div>
+      <div class="sum"><b>${month.length}</b><span>1ヶ月以内</span></div>
+    </div>${sortBar}`;
+  if(!byTime) return head + hierarchy(items, true);
+  return head + `
+    ${!bad.length && !soon.length ? `<div class="card" style="margin-top:12px"><p>✨ 近いうちにやるお手入れはありません</p></div>` : ''}
+    ${sec('時期を過ぎたもの', bad)}${sec('今月・もうすぐ', soon)}${sec('1ヶ月以内', month)}${sec('それ以降', after)}${sec('ランプ点灯時・不定期', lamp)}`;
+}
+
+/* ================= 画面: 設備一覧 ================= */
+function taskLabel(it){
+  if(it.task) return it.task;
+  const e = it.equip && CATALOG.find(x=>x.id===it.equip);
+  if(e){ const b = e.name.replace(/（.*?）/,''); if(it.name.startsWith(b+' ')) return it.name.slice(b.length+1); }
+  return it.name;
+}
+function equipLabel(it){
+  const e = it.equip && CATALOG.find(x=>x.id===it.equip);
+  return e ? e.name : (it.eqName || it.name);
+}
+function taskRow(it){
+  const s = status(it);
+  const right = s.d ? `<b>${s.label}</b>${s.dt}` : `<b>${s.label}</b>${it.last ? '前回 '+fmt(parse(it.last)) : '記録なし'}`;
+  return `<div class="item task ${s.cls}" data-id="${it.id}">
+    <div class="body"><div class="name">${esc(taskLabel(it))}</div><div class="meta"><span>${freqLabel(it.f)}</span></div></div>
+    <div class="due">${right}</div>
+    <button class="donebtn" data-done="${it.id}" aria-label="お手入れした"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+  </div>`;
+}
+function viewItems(){
+  // 設備の管理ページ：フロアごとに登録済みの設備と時期を表示し、追加・削除する
+  const idx = (arr, v) => { const i = arr.indexOf(v); return i<0 ? 999 : i; };
+  const floors = [...new Set([...state.floors, ...state.items.map(i=>i.floor||'—')])];
+  let html = `<p class="note" style="margin:14px 2px 0">登録している設備の一覧です。お手入れ項目をタップすると名前やサイクルを変更でき、「削除」でその項目だけ消せます。設備をまるごと消すときは「設備ごと削除」を使います。お手入れの記録は「予定」から行います。</p>`;
+  floors.forEach(fl => {
+    const fi = state.items.filter(i => (i.floor||'—')===fl);
+    const groups = new Map();
+    fi.forEach(i => { const k = equipLabel(i) + '\u0000' + (i.place||''); if(!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
+    const order = e => { const j = CATALOG.findIndex(x=>x.name===e); return j<0 ? 999 : j; };
+    const list = [...groups.entries()].map(([k,arr]) => ({en:k.split('\u0000')[0], pl:k.split('\u0000')[1], arr, cat:arr[0].cat||'その他'}))
+      .sort((a,b) => idx(state.cats,a.cat)-idx(state.cats,b.cat) || order(a.en)-order(b.en) || a.en.localeCompare(b.en,'ja') || a.pl.localeCompare(b.pl,'ja',{numeric:true}));
+    html += `<h2 class="floorhead">${esc(fl)}<span class="cnt">${list.length}件</span></h2>`;
+    // カテゴリ単位で表示（設備がないカテゴリも、追加ボタンのために見出しを出す）
+    const fcats = [...new Set([...CAT_ORDER.filter(c => catalogFor(fl).some(e=>e.cat===c)), ...list.map(g=>g.cat)])]
+      .sort((a,b)=>idx(state.cats,a)-idx(state.cats,b));
+    fcats.forEach(c => {
+      html += `<div class="cathead">${esc(c)}</div>`;
+      list.filter(g=>g.cat===c).forEach(g => {
+      const tasks = g.arr.map(it => `<li class="tedit" data-cyc="${it.id}"><span class="tn">${esc(taskLabel(it))}</span><span class="cyc">${freqLabel(it.f)}<i>✎</i></span><button class="tdel" data-tdel="${it.id}" aria-label="この項目を削除">削除</button></li>`).join('')
+        + `<li class="tadd"><button data-addtask="${g.arr[0].id}">＋ お手入れ項目を追加</button></li>`;
+      html += `<div class="eqrow"><div class="eqrow-h"><div class="eqname" style="padding:0">${esc(g.en)}${g.pl?`<span class="tag place">${esc(g.pl)}</span>`:''}</div>
+        <button class="delbtn" data-delgrp="${g.arr.map(i=>i.id).join(',')}" data-label="${esc(g.en+(g.pl?'（'+g.pl+'）':''))}">設備ごと削除</button></div><ul class="tlist">${tasks}</ul></div>`;
+      });
+      if(CATALOG.some(e=>e.cat===c)) html += `<button class="addcat" data-addcat="${esc(fl)}|${esc(c)}">＋ ${esc(c)}に設備を追加</button>`;
+    });
+  });
+  html += `<div style="margin-top:18px"><button class="btn sub" id="manualAdd">リストにない設備を手入力で追加</button></div>`;
+  return html;
+}
+function hierarchy(items, dueBadge){
+  let html = '';
+  const idx = (arr, v) => { const i = arr.indexOf(v); return i<0 ? 999 : i; };
+  const floors = [...new Set(items.map(i=>i.floor||'—'))].sort((a,b)=>idx(state.floors,a)-idx(state.floors,b));
+  floors.forEach(fl => {
+    const fi = items.filter(i => (i.floor||'—')===fl);
+    html += `<h2 class="floorhead">${esc(fl)}<span class="cnt">${fi.length}</span></h2>`;
+    const cats = [...new Set(fi.map(i=>i.cat||'その他'))].sort((a,b)=>idx(state.cats,a)-idx(state.cats,b));
+    cats.forEach(c => {
+      const ci = fi.filter(i => (i.cat||'その他')===c);
+      html += `<div class="cathead">${esc(c)}</div>`;
+      // 設備ごとにまとめる（同じ設備でも設置場所ごとに分ける）
+      const groups = new Map();
+      ci.forEach(i => { const k = equipLabel(i) + '\u0000' + (i.place||''); if(!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
+      const order = e => { const j = CATALOG.findIndex(x=>x.name===e); return j<0 ? 999 : j; };
+      [...groups.entries()].sort((a,b) => { const [ea,pa] = a[0].split('\u0000'), [eb,pb] = b[0].split('\u0000'); return order(ea)-order(eb) || ea.localeCompare(eb,'ja') || pa.localeCompare(pb,'ja',{numeric:true}); })
+        .forEach(([k, arr]) => {
+          const [en, pl] = k.split('\u0000');
+          html += `<div class="eqcard"><div class="eqname">${esc(en)}${pl?`<span class="tag place">${esc(pl)}</span>`:''}</div>${arr.map(taskRow).join('')}</div>`;
+        });
+    });
+  });
+  return html;
+}
+/* ================= 画面: 設定 ================= */
+function viewSettings(){
+  const mgr = (key, title) => `<div class="card"><b>${title}</b>
+    <div>${state[key].map((x,i)=>`<div class="mgr-row"><span>${esc(x)}</span><button class="x" data-up="${key}:${i}" aria-label="上へ">↑</button><button class="x" data-del="${key}:${i}" aria-label="削除">×</button></div>`).join('')}</div>
+    <div class="row" style="margin-top:8px"><input class="i" id="new-${key}" placeholder="追加する名前"><button class="btn sub" style="flex:0 0 80px" data-add="${key}">追加</button></div></div>`;
+  return `<h2>基本設定</h2>
+  <div class="card">
+    <label class="f" style="margin-top:0">入居年月（任意）</label>
+    ${ymSelect('moveIn', state.moveIn)}
+    <p class="note">記録がない設備は、入居月を起点にお手入れ時期を計算します。</p>
+    <label class="f">「もうすぐ」と表示するのは何日前から</label>
+    <select class="i" id="notifyDays">${[3,5,7,10,14,30].map(n=>`<option value="${n}" ${state.notifyDays===n?'selected':''}>${n}日前</option>`).join('')}</select>
+  </div>
+  <h2>通知・リマインダー</h2>
+  <div class="card">
+    <p>スマホのカレンダーに予定を入れておくと、カレンダーアプリが通知してくれます。</p>
+    <button class="btn" id="icsBtn">全部の予定をカレンダー用に書き出す（.ics）</button>
+    <p class="note">繰り返し予定として書き出すので、1回取り込めば毎回通知されます（各予定の前日9時に通知）。各設備の詳細画面からGoogleカレンダーに1件ずつ追加することもできます。</p>
+  </div>
+  <h2>フロア・カテゴリの管理</h2>
+  ${mgr('floors','階（フロア）')}${mgr('cats','カテゴリ')}
+  <h2>データ</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0">データはこの端末のブラウザ内にだけ保存されます。機種変更の前などにバックアップしてください。</p>
+    <div class="row"><button class="btn sub" id="exportBtn">バックアップ</button><button class="btn sub" id="importBtn">復元</button></div>
+    <div style="height:8px"></div>
+    <button class="btn danger" id="resetBtn">すべてのデータを削除</button>
+  </div>
+  <p class="note" style="padding:6px 4px">このアプリは一条工務店とは関係のない個人制作の非公式アプリです。お手入れ方法や時期は目安なので、お使いの設備の取扱説明書を必ず確認してください。</p>`;
+}
+
+/* ================= 描画 ================= */
+function render(){
+  if(!state.onboarded){ onboarding(1); return; }
+  document.querySelector('nav.tabs').classList.remove('hidden');
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab===tab));
+  $('#fab').classList.toggle('hidden', tab!=='home');
+  const v = $('#view');
+  v.innerHTML = tab==='home' ? viewHome() : tab==='items' ? viewItems() : viewSettings();
+  v.classList.toggle('bulk', !!bulk);
+  bindRows(v);
+  drawBulkBar();
+  if($('#bulkStart')) $('#bulkStart').onclick = startBulk;
+  if(bulk){ $('#fab').classList.add('hidden'); if($('#bulkStart')) $('#bulkStart').outerHTML = '<p class="bulkhint">お手入れしたものをタップ（設備名をタップするとその設備をまとめて選択）</p>'; }
+  v.querySelectorAll('[data-sort]').forEach(b => b.onclick = () => { state.sort = b.dataset.sort; save(); render(); });
+  const n = state.items.filter(it => ['bad','warn'].includes(status(it).cls)).length;
+  const bd = $('#badge'); bd.textContent = n; bd.classList.toggle('hidden', !n);
+  if($('#goOb')) $('#goOb').onclick = () => presetSheet();
+  if($('#addPreset')) $('#addPreset').onclick = () => presetSheet();
+  if(tab==='items'){
+    v.querySelectorAll('[data-addfl]').forEach(b => b.onclick = () => presetSheet(b.dataset.addfl));
+    v.querySelectorAll('[data-delgrp]').forEach(b => b.onclick = () => confirmBox(`「${b.dataset.label}」を削除しますか？お手入れの記録も消えます。`, '削除する', () => {
+      const ids = new Set(b.dataset.delgrp.split(',')); state.items = state.items.filter(i => !ids.has(i.id)); save(); render(); toast('削除しました');
+    }));
+    if($('#manualAdd')) $('#manualAdd').onclick = () => editItem(null);
+    v.querySelectorAll('[data-cyc]').forEach(b => b.onclick = () => cycleSheet(b.dataset.cyc));
+    v.querySelectorAll('[data-tdel]').forEach(b => b.onclick = e => {
+      e.stopPropagation();
+      const it = state.items.find(x=>x.id===b.dataset.tdel); if(!it) return;
+      const same = state.items.filter(x => x.floor===it.floor && (x.place||'')===(it.place||'') && equipLabel(x)===equipLabel(it));
+      confirmBox(same.length<=1 ? `「${taskLabel(it)}」を削除しますか？最後の項目なので、設備「${equipLabel(it)}」も一覧から消えます。` : `「${taskLabel(it)}」を削除しますか？`, '削除する',
+        () => { state.items = state.items.filter(x=>x.id!==it.id); save(); render(); toast('削除しました'); });
+    });
+    v.querySelectorAll('[data-addcat]').forEach(b => b.onclick = () => { const [fl, c] = b.dataset.addcat.split('|'); presetSheet(fl, c); });
+    v.querySelectorAll('[data-addtask]').forEach(b => b.onclick = () => { const t = state.items.find(x=>x.id===b.dataset.addtask); if(t) cycleSheet(null, t); });
+  }
+  if(tab==='settings') bindSettings();
+}
+
+function bindSettings(){
+  ['moveIn-y','moveIn-m'].forEach(id => $('#'+id).onchange = () => { const v = ymValue('moveIn'); if(v || (!$('#moveIn-y').value && !$('#moveIn-m').value)){ state.moveIn = v; save(); toast(v ? '入居年月を保存しました' : '入居年月を未設定にしました'); } });
+  $('#notifyDays').onchange = e => { state.notifyDays = +e.target.value; save(); toast('保存しました'); };
+  document.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const k = b.dataset.add, inp = $('#new-'+k), v = inp.value.trim();
+    if(!v) return; if(state[k].includes(v)){ toast('すでにあります'); return; }
+    state[k].push(v); save(); render();
+  });
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const [k,i] = b.dataset.del.split(':'); state[k].splice(+i,1); save(); render(); });
+  document.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const [k,i0] = b.dataset.up.split(':'); const i=+i0; if(i>0){ [state[k][i-1],state[k][i]]=[state[k][i],state[k][i-1]]; save(); render(); } });
+  $('#icsBtn').onclick = exportICS;
+  $('#exportBtn').onclick = exportData;
+  $('#importBtn').onclick = importData;
+  $('#resetBtn').onclick = () => confirmBox('すべてのデータを削除しますか？元に戻せません。','削除する', () => {
+    state = {onboarded:false, moveIn:'', notifyDays:7, floors:[...DEFAULT_FLOORS], cats:[...DEFAULT_CATS], items:[]}; save(); render();
+  });
+}
+
+/* 入居年月の入力（年・月のプルダウン） */
+function ymSelect(id, v){
+  const [vy, vm] = (v||'').split('-'); const y0 = today().getFullYear();
+  const ys = Array.from({length:y0-1989}, (_,i)=>y0-i);
+  return `<div class="row ym"><select class="i" id="${id}-y"><option value="">年</option>${ys.map(y=>`<option value="${y}" ${String(y)===vy?'selected':''}>${y}年</option>`).join('')}</select>
+    <select class="i" id="${id}-m"><option value="">月</option>${Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${pad(m)}" ${pad(m)===vm?'selected':''}>${m}月</option>`).join('')}</select></div>`;
+}
+function ymValue(id){
+  const y = $('#'+id+'-y').value, m = $('#'+id+'-m').value;
+  if(!y || !m) return '';
+  const v = `${y}-${m}`; return v > ymd(today()).slice(0,7) ? ymd(today()).slice(0,7) : v;
+}
+/* ================= 初回設定 ================= */
+let ob = null;
+// ロスガードは家に1台だけなので、どのフロアに登録済みでも「登録済み」として扱う
+const eqOwnedCount = (floor, id) => new Set(state.items.filter(i=>(id==='losguard' || i.floor===floor) && i.equip===id).map(i=>i.place||'')).size;
+const curFloors = () => ob ? ob.floors : state.floors;
+function catalogFor(floor){
+  const lg = losguardFloor(curFloors());
+  return CATALOG.filter(e => (isOut(floor) ? e.out : !e.out) && (e.id!=='losguard' || floor===lg));
+}
+const isHF = e => e.tasks.some(t => t.f.t==='d' && t.f.v<=7);
+const HF_NOTE = `<p class="hfnote">「※頻度高※」は毎週のように掃除する設備を想定しています。管理が不要な場合はチェックしないでください。</p>`;
+function newSel(floor, prefill){
+  const sel = {};
+  if(prefill){
+    const d = {...(FLOOR_DEFAULTS[floor] || {})};
+    if(floor === losguardFloor(curFloors())){ d.losguard = 1; d.exhaust = 2; }
+    Object.entries(d).forEach(([id,n]) => {
+      const e = CATALOG.find(x=>x.id===id); if(!e) return;
+      if(!e.multi && eqOwnedCount(floor,id)) return;
+      sel[id] = {on:true, units:Array(e.multi?n:1).fill('')};
+    });
+  }
+  return sel;
+}
+function eqPicker(floor, sel, box, onlyCat){
+  const list = catalogFor(floor).filter(e => !onlyCat || e.cat===onlyCat);
+  const cats = CAT_ORDER.filter(c => list.some(e=>e.cat===c));
+  const opened = new Set((box.dataset.opened||'').split('|').filter(Boolean));
+  box.innerHTML = cats.map(c => {
+    const eqs = list.filter(e=>e.cat===c);
+    const ch = eqs.filter(e => sel[e.id] && sel[e.id].on && sel[e.id].units.length);
+    const names = ch.map(e => e.name.replace(/（.*?）/,'') + (e.multi ? `×${sel[e.id].units.length}` : '')).join('、');
+    return `<details class="catbox" data-cat="${esc(c)}" ${opened.has(c)?'open':''}><summary><span class="ct">${esc(c)}<small>${names ? esc(names) : 'なし'}</small></span><span class="cnt">${ch.length ? ch.length+'件' : 'タップして選ぶ'}</span></summary>` + eqs.map(e => {
+    const s = sel[e.id], on = s && s.on && s.units.length, have = eqOwnedCount(floor, e.id);
+    const locked = !e.multi && have;
+    const sub = (have ? `<b class="have">登録済み${e.multi?` ${have}台`:''}</b> ` : '') + esc(PARTS[e.id] || e.tasks.map(t=>t.name).join('・'));
+    const nm = `<span class="nm">${esc(e.name)}${isHF(e)?'<i class="hf">※頻度高※</i>':''}</span>`;
+    if(e.multi){
+      const n = on ? s.units.length : 0;
+      return `<div class="eq ${on?'on':''}">
+        <div class="pick multi"><span class="t">${nm}<small>${sub}</small></span>
+          <div class="stepper"><button data-minus="${e.id}" aria-label="減らす" ${n?'':'disabled'}>−</button><b>${n}</b><button data-plus="${e.id}" aria-label="増やす">＋</button><span>台</span></div></div>
+        ${on ? ((s.showPlace || s.units.some(u=>u)) ? `<div class="places">${s.units.map((u,i)=>`<input class="i sm" data-place="${e.id}:${i}" value="${esc(u)}" placeholder="${i+1}台目の設置場所（例：${esc(placeEx(e.id,i))}）">`).join('')}</div>`
+          : `<button class="linkbtn" data-showplace="${e.id}">＋ 設置場所を入れる（任意）</button>`) : ''}</div>`;
+    }
+    return `<div class="eq ${on?'on':''} ${locked?'locked':''}">
+      <label class="pick"><input type="checkbox" data-eq="${e.id}" ${locked?'disabled checked':(on?'checked':'')}>
+      <span class="t">${nm}<small>${locked?'<b class="have">登録済み</b>':sub}</small></span></label></div>`;
+  }).join('') + `</details>`;
+  }).join('');
+  const redraw = () => {
+    box.dataset.opened = [...box.querySelectorAll('details.catbox[open]')].map(d=>d.dataset.cat).join('|');
+    eqPicker(floor, sel, box, onlyCat);
+  };
+  box.querySelectorAll('[data-eq]').forEach(cb => cb.onchange = () => {
+    const id = cb.dataset.eq;
+    sel[id] = cb.checked ? {on:true, units:['']} : {on:false, units:['']};
+    redraw();
+  });
+  box.querySelectorAll('[data-plus]').forEach(b => b.onclick = () => {
+    const id = b.dataset.plus;
+    if(!sel[id] || !sel[id].on) sel[id] = {on:true, units:[]};
+    if(sel[id].units.length < 20) sel[id].units.push('');
+    redraw();
+  });
+  box.querySelectorAll('[data-minus]').forEach(b => b.onclick = () => {
+    const s = sel[b.dataset.minus]; if(!s) return;
+    s.units.pop(); if(!s.units.length) s.on = false;
+    redraw();
+  });
+  box.querySelectorAll('[data-showplace]').forEach(b => b.onclick = () => { sel[b.dataset.showplace].showPlace = true; redraw(); const f = box.querySelector(`[data-place="${b.dataset.showplace}:0"]`); if(f) f.focus(); });
+  box.querySelectorAll('[data-place]').forEach(inp => inp.oninput = () => { const [id,i] = inp.dataset.place.split(':'); sel[id].units[+i] = inp.value; });
+}
+function placeEx(id, i){
+  const ex = {aircon:['LDK','寝室','子ども部屋'], circ:['リビング','ダイニング','寝室'], exhaust:['トイレ','洗面所','ファミクロ'], toilet:['1階','2階'], basin:['洗面所','2階ホール'], closet:['寝室','ファミクロ'], nanoe:['玄関','洗面所','ファミクロ']}[id] || ['○○'];
+  return ex[i % ex.length];
+}
+function commitSel(floor, sel){
+  if(!state.floors.includes(floor)){
+    const i = state.floors.indexOf(OUT);
+    i < 0 || isOut(floor) ? state.floors.push(floor) : state.floors.splice(i, 0, floor);
+  }
+  const now = ymd(today()); let n = 0;
+  Object.entries(sel).forEach(([id, s]) => {
+    if(!s.on) return;
+    const e = CATALOG.find(x=>x.id===id);
+    if(!e.multi && eqOwnedCount(floor,id)) return;
+    if(!state.cats.includes(e.cat)) state.cats.push(e.cat);
+    const base = eqOwnedCount(floor, id);
+    s.units.forEach((u, i) => {
+      let place = (u||'').trim();
+      if(!place && e.multi && (s.units.length > 1 || base)) place = `${base+i+1}台目`;
+      e.tasks.forEach(t => {
+        state.items.push({id:uid(), equip:id, name:`${e.name} ${t.name}`, task:t.name, place, floor, cat:e.cat, method:t.method||'', note:t.note||'', f:{...t.f}, last:'', hist:[], created:now});
+        n++;
+      });
+    });
+  });
+  return n;
+}
+function onboarding(stepNo){
+  $('#fab').classList.add('hidden'); document.querySelector('nav.tabs').classList.add('hidden');
+  const v = $('#view'); window.scrollTo(0,0);
+  if(stepNo===1){
+    v.innerHTML = `<div class="ob-step">STEP 1 / 3</div>
+      <h2 class="obh">入居した年月を教えてください</h2>
+      <p class="note" style="margin:0 2px 8px">3ステップ・5分ほどで終わります。迷ったら「次へ」で進めばOKです。</p>
+      <div class="card"><p>入居年月をもとに、お手入れ時期を自動でセットします。</p>
+      ${ymSelect('obMove', state.moveIn)}</div>
+      <button class="btn" id="obNext">次へ（フロアと設備を選ぶ）</button><div style="height:6px"></div>
+      <button class="btn ghost" id="obSkip">あとから登録する</button>
+      <p class="note" style="margin:2px 4px 0;text-align:center">入居年月を入れない場合は、今日（登録した日）を起点にお手入れ時期がセットされます。</p>
+      <div class="quick">
+        <b>とりあえず使ってみたい方へ</b>
+        <p class="note">1階・2階・屋外に、一条の家によくある設備をまとめて登録します。あとから設備一覧で足したり消したりできます。</p>
+        <button class="btn sub" id="obQuick">おすすめの構成ですぐはじめる</button>
+      </div>`;
+    $('#obNext').onclick = () => { state.moveIn = ymValue('obMove'); save(); onboarding(2); };
+    $('#obSkip').onclick = () => { state.moveIn = ''; save(); onboarding(2); };
+    $('#obQuick').onclick = () => { state.moveIn = ymValue('obMove'); ob = {floors:['1階','2階',OUT], extra:[], idx:0, pages:{}}; finishOb(); };
+    return;
+  }
+  if(stepNo===2){
+    if(!ob) ob = {floors:['1階','2階',OUT], extra:[], idx:0, pages:{}};
+    const order = () => [...new Set(['1階','2階','3階', ...ob.extra, OUT])];
+    const draw = () => {
+      v.innerHTML = `<div class="ob-step">STEP 2 / 3</div>
+        <h2 class="obh">お家のフロア構成を選んでください</h2>
+        ${order().map(f=>`<label class="pick"><input type="checkbox" data-fl="${esc(f)}" ${ob.floors.includes(f)?'checked':''}><span class="t">${esc(f)}${isOut(f)?'<small>エコキュート・床暖房の熱源機など</small>':''}</span></label>`).join('')}
+        <div class="row" style="margin-top:8px"><input class="i" id="obFl" placeholder="例：ロフト、地下"><button class="btn sub" style="flex:0 0 80px" id="obFlAdd">追加</button></div>
+        <div class="row" style="margin-top:18px"><button class="btn ghost" id="obBack">戻る</button><button class="btn" id="obNext">次へ</button></div>`;
+      v.querySelectorAll('[data-fl]').forEach(cb => cb.onchange = () => {
+        const f = cb.dataset.fl; ob.floors = cb.checked ? [...ob.floors, f] : ob.floors.filter(x=>x!==f);
+      });
+      $('#obFlAdd').onclick = () => { const x = $('#obFl').value.trim(); if(!x) return; if(!ob.extra.includes(x) && !['1階','2階','3階',OUT].includes(x)) ob.extra.push(x); if(!ob.floors.includes(x)) ob.floors.push(x); draw(); };
+      $('#obBack').onclick = () => onboarding(1);
+      $('#obNext').onclick = () => {
+        if(!ob.floors.length){ toast('フロアを1つ以上選んでください'); return; }
+        const o = order(); ob.floors.sort((a,b)=>o.indexOf(a)-o.indexOf(b));
+        ob.idx = 0; onboarding(3);
+      };
+    };
+    draw(); return;
+  }
+  const pages = ob.floors;
+  const floor = pages[ob.idx];
+  if(!ob.pages[floor]) ob.pages[floor] = newSel(floor, true);
+  const last = ob.idx === pages.length-1;
+  v.innerHTML = `<div class="ob-step">STEP 3 / 3　${esc(floor)}（${ob.idx+1} / ${pages.length}）</div>
+    <div class="dots">${pages.map((p,i)=>`<span class="${i<ob.idx?'done':i===ob.idx?'cur':''}">${esc(p)}</span>`).join('')}</div>
+    <h2 class="obh">${isOut(floor)?'屋外にある設備を選んでください':`${esc(floor)}にある設備を選んでください`}</h2>
+    <p class="note" style="margin:0 2px">よくある設備は選択済みです。違うところだけ、カテゴリをタップして直してください。</p>
+    ${HF_NOTE}
+    <div id="obPick"></div>
+    <p class="note">設備、お手入れ項目、頻度は登録後でも編集可能です。</p>
+    <div class="sticky-foot"><div class="row"><button class="btn ghost" id="obBack">戻る</button><button class="btn" id="obNext">${last?'この内容ではじめる':'次へ'}</button></div>
+      ${last ? '' : `<button class="linkbtn center" id="obRest">残りのフロアはおすすめのまま登録して完了</button>`}</div>`;
+  eqPicker(floor, ob.pages[floor], $('#obPick'));
+  $('#obBack').onclick = () => { if(ob.idx===0) onboarding(2); else { ob.idx--; onboarding(3); } };
+  $('#obNext').onclick = () => { if(!last){ ob.idx++; onboarding(3); return; } finishOb(); };
+  if($('#obRest')) $('#obRest').onclick = finishOb;
+}
+function finishOb(){
+  state.floors = [];
+  let n = 0; ob.floors.forEach(f => { n += commitSel(f, ob.pages[f] || newSel(f,true)); });
+  state.onboarded = true; ob = null; save(); tab = 'home'; render(); toast(`${n}件のお手入れを登録しました`);
+}
+function presetSheet(floorArg, catArg){
+  const floors = state.floors.length ? state.floors : DEFAULT_FLOORS;
+  const floor = floorArg || floors[0];
+  const sel = newSel(floor, false);
+  openSheet(`<h3>${esc(floor)}${catArg?'・'+esc(catArg):''}に設備を追加</h3>
+    ${HF_NOTE}
+    <div id="psPick"></div>
+    <div class="sticky-foot"><button class="btn" id="psAdd">選んだ設備を追加</button></div>`);
+  const box = $('#psPick');
+  if(catArg) box.dataset.opened = catArg;
+  eqPicker(floor, sel, box, catArg);
+  $('#psAdd').onclick = () => {
+    const n = commitSel(floor, sel); state.onboarded = true; save(); closeSheet(); render();
+    toast(n ? `${n}件追加しました` : '追加する設備が選ばれていません');
+  };
+}
+/* ================= 詳細・記録 ================= */
+function detail(id){
+  const it = state.items.find(x=>x.id===id); if(!it) return;
+  const s = status(it);
+  const hist = [...(it.hist||[]).map(d=>({d})), ...(it.skips||[]).map(d=>({d, skip:1}))].sort((a,b)=>a.d<b.d?1:-1);
+  openSheet(`<h3>${esc(it.name)}</h3>
+    <div class="meta" style="font-size:12px;color:var(--sub);display:flex;gap:6px"><span class="tag">${esc(it.floor||'—')}</span>${it.place?`<span class="tag place">${esc(it.place)}</span>`:''}<span class="tag">${esc(it.cat||'—')}</span></div>
+    <div class="nextbox ${s.cls}"><div><div class="note">次回のお手入れ</div><b>${s.d ? (isMonthly(it.f) ? s.dt : fmtFull(s.d)) : s.label}</b></div><div style="font-weight:700">${s.d ? s.label : ''}</div></div>
+    <dl class="kv"><dt>頻度</dt><dd>${freqLabel(it.f)}</dd><dt>方法</dt><dd>${esc(it.method)||'—'}</dd><dt>前回</dt><dd>${it.last ? fmtFull(parse(it.last)) : 'まだ記録がありません'}</dd>${it.note?`<dt>メモ</dt><dd style="white-space:pre-wrap">${esc(it.note)}</dd>`:''}${it.url?`<dt>購入先</dt><dd><a href="${esc(it.url)}" target="_blank" rel="noopener">リンクを開く</a></dd>`:''}</dl>
+    <button class="btn" id="dRec">お手入れした日を記録</button>
+    ${s.d ? `<div style="height:8px"></div><button class="btn sub" id="dSkip">今回はパスする</button><p class="note" style="margin:4px 2px 0;text-align:center">パスすると、次回は${(()=>{const nd = nextDue({...it, lastSkip: ymd(today()), nextFix:''}); return nd ? dueText(nd, it.f) : '';})()}になります</p>` : ''}
+    ${s.d ? `<div style="height:8px"></div><a class="btn sub" style="display:block;text-align:center;text-decoration:none" href="${gcalUrl(it, s.d)}" target="_blank" rel="noopener">Googleカレンダーに追加</a>` : ''}
+    ${hist.length ? `<h2>お手入れの記録</h2><ul class="hist">${hist.slice(0,12).map(h=>`<li>${fmtFull(parse(h.d))}${h.skip?'　<span class="note">パス</span>':''}</li>`).join('')}</ul>` : ''}
+    <div class="row" style="margin-top:16px"><button class="btn ghost" id="dEdit">編集</button><button class="btn ghost" id="dDel" style="color:var(--red)">削除</button></div>`);
+  $('#dRec').onclick = () => recordSheet(id);
+  if($('#dSkip')) $('#dSkip').onclick = () => { markSkip(it, ymd(today())); save(); closeSheet(); render(); const nd = nextDue(it); toast(`パスしました。次回は ${dueText(nd, it.f)}`); };
+  $('#dEdit').onclick = () => editItem(id);
+  $('#dDel').onclick = () => confirmBox(`「${it.name}」を削除しますか？`, '削除する', () => { state.items = state.items.filter(x=>x.id!==id); save(); render(); toast('削除しました'); });
+}
+function recordSheet(id){
+  const it = state.items.find(x=>x.id===id); if(!it) return;
+  openSheet(`<h3>お手入れした日</h3><p class="note">${esc(it.name)}</p>
+    <input class="i" type="date" id="rDate" value="${ymd(today())}" max="${ymd(today())}">
+    <div id="rPrev" class="nextbox" style="margin-top:12px"></div>
+    <button class="btn" id="rOk">記録する</button><div style="height:6px"></div><button class="btn ghost" id="rNo">キャンセル</button>`);
+  const prev = () => {
+    const d = $('#rDate').value;
+    const tmp = {...it, last:d};
+    const nd = d ? nextDue(tmp) : null;
+    $('#rPrev').innerHTML = `<div><div class="note">次回のお手入れ</div><b>${nd ? fmtFull(nd) : (it.f.t==='lamp'?'ランプ点灯時':'不定期')}</b></div>`;
+  };
+  $('#rDate').oninput = prev; prev();
+  $('#rNo').onclick = closeSheet;
+  $('#rOk').onclick = () => {
+    const d = $('#rDate').value; if(!d) return;
+    markDone(it, d);
+    save(); closeSheet(); render();
+    const nd = nextDue(it); toast(nd ? `記録しました。次回は ${dueText(nd, it.f)}` : '記録しました');
+  };
+}
+
+function markDone(it, d){
+  it.hist = [...new Set([...(it.hist||[]), d])].sort();
+  it.last = it.hist[it.hist.length-1];
+  it.nextFix = '';
+}
+function markSkip(it, d){
+  it.skips = [...new Set([...(it.skips||[]), d])].sort();
+  it.lastSkip = it.skips[it.skips.length-1];
+  it.nextFix = '';
+}
+
+/* ================= サイクルの変更 ================= */
+function freqFields(f){
+  let t = f.t, v = f.v;
+  if(t==='d' && v%7===0){ t='w'; v=v/7; }
+  if(t==='m' && v%12===0){ t='y'; v=v/12; }
+  return {t, v};
+}
+function cycleSheet(id, tpl){
+  // 既存のお手入れ項目の編集（id）か、設備への項目追加（tpl＝同じ設備の項目）
+  const isNew = !id;
+  const it = isNew ? {...tpl, id:null, task:'', f:{t:'m',v:3}, last:'', lastSkip:'', hist:[], skips:[], nextFix:'', method:'', note:'', created: ymd(today())} : state.items.find(x=>x.id===id);
+  if(!it) return;
+  const cur = freqFields(it.f);
+  const sameEq = isNew ? [] : state.items.filter(x => x.floor===it.floor && (x.place||'')===(it.place||'') && equipLabel(x)===equipLabel(it));
+  openSheet(`<h3>${isNew?'お手入れ項目を追加':'お手入れ項目を編集'}</h3><p class="note">${esc(equipLabel(it))}${it.place?'（'+esc(it.place)+'）':''}・${esc(it.floor||'')}</p>
+    <label class="f">項目名</label><input class="i" id="cName" value="${esc(isNew ? '' : taskLabel(it))}" placeholder="例：フィルター掃除">
+    <label class="f">サイクル</label>
+    <div class="row"><div id="cVw"></div><select class="i" id="cT">
+      <option value="d">日ごと</option><option value="w">週ごと</option><option value="m">ヶ月ごと</option><option value="y">年ごと</option>
+      <option value="s">毎年決まった月</option><option value="lamp">ランプ点灯時</option><option value="none">不定期</option></select></div>
+    <div id="cPrev" class="nextbox" style="margin-top:12px"></div>
+    <button class="btn" id="cSave">${isNew?'追加する':'保存'}</button><div style="height:6px"></div>
+    <div class="row"><button class="btn ghost" id="cNo">キャンセル</button>${isNew?'':`<button class="btn ghost" id="cDel" style="color:var(--red)">この項目を削除</button>`}</div>`);
+  $('#cT').value = cur.t;
+  const nf = () => {
+    const t = $('#cT').value, v = $('#cV') ? Math.max(1, parseInt($('#cV').value)||1) : 0;
+    return t==='w' ? {t:'d',v:v*7} : t==='y' ? {t:'m',v:v*12} : (t==='lamp'||t==='none') ? {t} : {t, v};
+  };
+  const prev = () => {
+    const f = nf(), d = nextDue({...it, f, nextFix:''});
+    $('#cPrev').innerHTML = `<div><div class="note">${freqLabel(f)}にすると、次回は</div><b>${d ? dueText(d, f) : (f.t==='lamp'?'ランプ点灯時':'不定期')}</b></div>`;
+  };
+  const drawV = (init) => {
+    const t = $('#cT').value, w = $('#cVw');
+    if(t==='s') w.innerHTML = `<select class="i" id="cV">${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${(cur.t==='s'&&cur.v===i+1)?'selected':''}>${i+1}月</option>`).join('')}</select>`;
+    else if(t==='lamp'||t==='none') w.innerHTML = '';
+    else w.innerHTML = `<input class="i" type="number" inputmode="numeric" min="1" max="999" id="cV" value="${init && t===cur.t ? cur.v : 1}">`;
+    if($('#cV')) $('#cV').oninput = $('#cV').onchange = prev;
+    prev();
+  };
+  $('#cT').onchange = () => drawV(false); drawV(true);
+  $('#cNo').onclick = closeSheet;
+  if($('#cDel')) $('#cDel').onclick = () => confirmBox(
+    sameEq.length <= 1 ? `「${taskLabel(it)}」を削除しますか？最後の項目なので、設備「${equipLabel(it)}」も一覧から消えます。` : `「${taskLabel(it)}」を削除しますか？`,
+    '削除する', () => { state.items = state.items.filter(x => x.id !== it.id); save(); render(); toast('削除しました'); });
+  $('#cSave').onclick = () => {
+    const name = $('#cName').value.trim(); if(!name){ toast('項目名を入れてください'); return; }
+    const eq = equipLabel(it);
+    if(isNew){
+      state.items.push({...it, id:uid(), task:name, name:`${eq} ${name}`, eqName:eq, f:nf()});
+      save(); closeSheet(); render(); toast(`「${name}」を追加しました`); return;
+    }
+    const changed = JSON.stringify(nf()) !== JSON.stringify(it.f);
+    it.task = name; it.name = `${eq} ${name}`; it.f = nf(); if(changed) it.nextFix = '';
+    save(); closeSheet(); render(); toast('保存しました');
+  };
+}
+
+/* ================= まとめて記録 ================= */
+let bulk = null;
+function startBulk(){ bulk = new Set(); render(); toast('お手入れしたものをタップして選んでください'); }
+function endBulk(){ bulk = null; $('#bulkbar').classList.add('hidden'); render(); }
+function drawBulkBar(){
+  const bar = $('#bulkbar');
+  if(!bulk){ bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  const n = bulk.size, dv = $('#bkDate') ? $('#bkDate').value : ymd(today());
+  bar.innerHTML = `<div class="in"><div class="row" style="align-items:center"><span class="bkcount"><b>${n}</b>件 選択中</span>
+      <input class="i sm" type="date" id="bkDate" value="${dv}" max="${ymd(today())}" style="flex:1.3"></div>
+    <div class="row" style="margin-top:8px"><button class="btn ghost" id="bkCancel" style="flex:.7">やめる</button><button class="btn sub" id="bkSkip" style="flex:.8" ${n?'':'disabled'}>パス</button><button class="btn" id="bkOk" style="flex:1.5" ${n?'':'disabled'}>まとめて記録</button></div></div>`;
+  $('#bkCancel').onclick = endBulk;
+  $('#bkSkip').onclick = () => {
+    if(!bulk.size) return; const n = bulk.size, d = ymd(today());
+    state.items.forEach(it => { if(bulk.has(it.id) && nextDue(it)) markSkip(it, d); });
+    save(); bulk = null; $('#bulkbar').classList.add('hidden'); render(); toast(`${n}件をパスしました`);
+  };
+  $('#bkOk').onclick = () => {
+    const d = $('#bkDate').value; if(!d || !bulk.size) return;
+    const n = bulk.size;
+    state.items.forEach(it => { if(bulk.has(it.id)) markDone(it, d); });
+    save(); bulk = null; $('#bulkbar').classList.add('hidden'); render(); toast(`${n}件を記録しました`);
+  };
+}
+
+/* ================= 追加・編集 ================= */
+function editItem(id){
+  const it = id ? state.items.find(x=>x.id===id) : {name:'', floor: filt.floor || state.floors[0] || '', cat: filt.cat || '', method:'', note:'', url:'', f:{t:'m',v:3}, last:''};
+  const opt = (list, v) => `<option value="">（なし）</option>` + list.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('');
+  const f = it.f;
+  openSheet(`<h3>${id?'設備を編集':'設備を追加'}</h3>
+    <label class="f">名前 *</label><input class="i" id="eName" value="${esc(it.name)}" placeholder="例：サーキュレーター 掃除">
+    <div class="row"><div><label class="f">フロア</label><select class="i" id="eFloor">${opt(state.floors, it.floor)}</select></div>
+    <div><label class="f">カテゴリ</label><select class="i" id="eCat">${opt(state.cats, it.cat)}</select></div></div>
+    <label class="f">設置場所（任意）</label><input class="i" id="ePlace" value="${esc(it.place||'')}" placeholder="例：寝室、リビング">
+    <label class="f">お手入れの頻度</label>
+    <div class="row"><div id="eVwrap"></div><select class="i" id="eT">
+      <option value="d" ${f.t==='d'?'selected':''}>日ごと</option><option value="w" ${f.t==='w'?'selected':''}>週ごと</option>
+      <option value="m" ${f.t==='m'?'selected':''}>ヶ月ごと</option><option value="y" ${f.t==='y'?'selected':''}>年ごと</option>
+      <option value="s" ${f.t==='s'?'selected':''}>毎年決まった月</option><option value="lamp" ${f.t==='lamp'?'selected':''}>ランプ点灯時</option>
+      <option value="none" ${f.t==='none'?'selected':''}>不定期（記録だけ）</option></select></div>
+    <label class="f">方法・使う道具</label><input class="i" id="eMethod" value="${esc(it.method)}" placeholder="例：掃除機・水洗い">
+    <label class="f">最後にお手入れした日（わかれば）</label><input class="i" type="date" id="eLast" value="${esc(it.last)}" max="${ymd(today())}">
+    <label class="f">次回の予定日を自分で決める（任意）</label><input class="i" type="date" id="eNext" value="${esc(it.nextFix||'')}">
+    <p class="note" style="margin:4px 2px 0">空欄なら頻度から自動で計算します。日付を入れると、次にお手入れを記録するまではその日が予定日になります。</p>
+    <label class="f">メモ</label><textarea class="i" id="eNote" placeholder="品番・注意点など">${esc(it.note)}</textarea>
+    <label class="f">交換品の購入先URL（任意）</label><input class="i" id="eUrl" value="${esc(it.url||'')}" placeholder="https://">
+    <div style="height:16px"></div><button class="btn" id="eSave">保存</button><div style="height:6px"></div><button class="btn ghost" id="eNo">キャンセル</button>`);
+  // 内部表現(d/m)→画面表現(d/w/m/y)
+  let t = f.t, v = f.v;
+  if(t==='d' && v%7===0){ t='w'; v=v/7; }
+  if(t==='m' && v%12===0){ t='y'; v=v/12; }
+  $('#eT').value = t;
+  const drawV = () => {
+    const tt = $('#eT').value, w = $('#eVwrap');
+    if(tt==='s') w.innerHTML = `<select class="i" id="eV">${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${(f.t==='s'&&f.v===i+1)?'selected':''}>${i+1}月</option>`).join('')}</select>`;
+    else if(tt==='lamp'||tt==='none') w.innerHTML = '';
+    else w.innerHTML = `<input class="i" type="number" min="1" max="999" id="eV" value="${tt===t?v:1}">`;
+  };
+  $('#eT').onchange = drawV; drawV();
+  $('#eNo').onclick = () => id ? detail(id) : closeSheet();
+  $('#eSave').onclick = () => {
+    const name = $('#eName').value.trim(); if(!name){ toast('名前を入れてください'); return; }
+    const tt = $('#eT').value, vv = $('#eV') ? Math.max(1, parseInt($('#eV').value)||1) : 0;
+    const nf = tt==='w' ? {t:'d',v:vv*7} : tt==='y' ? {t:'m',v:vv*12} : (tt==='lamp'||tt==='none') ? {t:tt} : {t:tt,v:vv};
+    const url = $('#eUrl').value.trim();
+    const data = {name, place:$('#ePlace').value.trim(), floor:$('#eFloor').value, cat:$('#eCat').value, f:nf, method:$('#eMethod').value.trim(), note:$('#eNote').value.trim(), url: /^https?:\/\//.test(url)?url:''};
+    const last = $('#eLast').value;
+    data.nextFix = $('#eNext').value || '';
+    if(id){
+      Object.assign(it, data);
+      it.hist = it.hist || [];
+      if(last && !it.hist.includes(last)) it.hist = [...it.hist, last].sort();
+      it.last = it.hist.length ? it.hist[it.hist.length-1] : '';
+    } else {
+      state.items.push({id:uid(), ...data, last, hist: last?[last]:[], created: ymd(today())});
+    }
+    save(); closeSheet(); render(); toast('保存しました');
+  };
+}
+
+/* ================= 通知・カレンダー ================= */
+function gcalUrl(it, d){
+  const s = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`, e2 = addDays(d,1);
+  const e = `${e2.getFullYear()}${pad(e2.getMonth()+1)}${pad(e2.getDate())}`;
+  const p = new URLSearchParams({action:'TEMPLATE', text:`【お手入れ】${it.name}`, dates:`${s}/${e}`, details:`${freqLabel(it.f)}${it.method?'／'+it.method:''}`});
+  if(rrule(it.f)) p.set('recur', 'RRULE:'+rrule(it.f));
+  return 'https://calendar.google.com/calendar/render?' + p.toString();
+}
+function rrule(f){
+  if(f.t==='d') return f.v%7===0 ? `FREQ=WEEKLY;INTERVAL=${f.v/7}` : `FREQ=DAILY;INTERVAL=${f.v}`;
+  if(f.t==='m') return f.v%12===0 ? `FREQ=YEARLY;INTERVAL=${f.v/12}` : `FREQ=MONTHLY;INTERVAL=${f.v}`;
+  if(f.t==='s') return 'FREQ=YEARLY';
+  return '';
+}
+const icsEsc = s => String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+function buildICS(){
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const ev = state.items.map(it => {
+    const d = nextDue(it); if(!d) return '';
+    const ds = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+    return ['BEGIN:VEVENT',`UID:${it.id}@otteire-cho`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${ds}`,`RRULE:${rrule(it.f)}`,
+      `SUMMARY:${icsEsc('【お手入れ】'+it.name)}`,`DESCRIPTION:${icsEsc(freqLabel(it.f)+(it.method?'／'+it.method:''))}`,
+      'BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${icsEsc(it.name)}`,'TRIGGER:-PT15H','END:VALARM','END:VEVENT'].join('\r\n');
+  }).filter(Boolean);
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//otteire-cho//JA','CALSCALE:GREGORIAN','X-WR-CALNAME:お手入れ予定',...ev,'END:VCALENDAR'].join('\r\n');
+}
+function download(name, text, type){
+  try{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], {type}));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    return true;
+  }catch(e){ return false; }
+}
+function textSheet(title, desc, text){
+  openSheet(`<h3>${title}</h3><p class="note">${desc}</p><textarea class="i" id="tx" style="min-height:180px;font-size:12px" readonly>${esc(text)}</textarea>
+    <div style="height:8px"></div><button class="btn" id="txCopy">コピー</button><div style="height:6px"></div><button class="btn ghost" id="txClose">閉じる</button>`);
+  $('#txCopy').onclick = async () => { try{ await navigator.clipboard.writeText(text); toast('コピーしました'); }catch(e){ $('#tx').select(); toast('選択した文字をコピーしてください'); } };
+  $('#txClose').onclick = closeSheet;
+}
+function exportICS(){
+  const n = state.items.filter(it => nextDue(it)).length;
+  if(!n){ toast('書き出せる予定がありません'); return; }
+  const ics = buildICS();
+  download('otteire.ics', ics, 'text/calendar');
+  textSheet('カレンダー用に書き出し', `${n}件の予定を書き出しました。ファイルが保存されない場合は、下の内容をコピーして「.ics」ファイルとして保存し、カレンダーアプリで開いてください。`, ics);
+}
+function exportData(){
+  const json = JSON.stringify(state);
+  download(`otteire-backup-${ymd(today())}.json`, json, 'application/json');
+  textSheet('バックアップ', 'ファイルが保存されない場合は、この文字をコピーしてメモアプリなどに保管してください。復元のときに貼り付けます。', json);
+}
+function importData(){
+  openSheet(`<h3>バックアップから復元</h3><p class="note">バックアップの文字を貼り付けるか、バックアップファイルを選んでください。今のデータは置き換わります。</p>
+    <input type="file" accept=".json,application/json" id="imFile" class="i"><div style="height:8px"></div>
+    <textarea class="i" id="imTx" style="min-height:140px;font-size:12px" placeholder="ここに貼り付け"></textarea>
+    <div style="height:8px"></div><button class="btn" id="imOk">復元する</button><div style="height:6px"></div><button class="btn ghost" id="imNo">キャンセル</button>`);
+  $('#imFile').onchange = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = () => $('#imTx').value = r.result; r.readAsText(f); };
+  $('#imNo').onclick = closeSheet;
+  $('#imOk').onclick = () => {
+    try{
+      const d = JSON.parse($('#imTx').value);
+      if(!Array.isArray(d.items)) throw 0;
+      state = Object.assign({onboarded:true, moveIn:'', notifyDays:7, floors:[...DEFAULT_FLOORS], cats:[...DEFAULT_CATS], items:[]}, d, {onboarded:true});
+      save(); closeSheet(); render(); toast('復元しました');
+    }catch(e){ toast('読み込めませんでした'); }
+  };
+}
+async function askNotify(){
+  if(!('Notification' in window)){ toast('この環境では通知が使えません'); return; }
+  try{
+    const p = await Notification.requestPermission();
+    if(p==='granted'){ state.notifyOn = true; save(); notifyDue(true); toast('通知をオンにしました'); }
+    else toast('通知が許可されませんでした');
+  }catch(e){ toast('この環境では通知が使えません'); }
+}
+function notifyDue(force){
+  try{
+    if(!state.notifyOn || !('Notification' in window) || Notification.permission!=='granted') return;
+    const k = ymd(today()); if(!force && state.lastNotified===k) return;
+    const due = state.items.filter(it => ['bad','warn'].includes(status(it).cls));
+    if(!due.length){ if(force) new Notification('お手入れ帳', {body:'近いうちにやるお手入れはありません'}); return; }
+    new Notification(`お手入れが${due.length}件あります`, {body: due.slice(0,4).map(i=>'・'+i.name).join('\n') + (due.length>4?'\nほか':'')});
+    state.lastNotified = k; save();
+  }catch(e){}
+}
+
+render();
+notifyDue(false);
+if('serviceWorker' in navigator && location.protocol==='https:'){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
